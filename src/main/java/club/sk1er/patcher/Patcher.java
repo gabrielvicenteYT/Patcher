@@ -76,7 +76,8 @@ public class Patcher {
     // betas will be "1.x.x+beta-y" / "1.x.x+branch_beta-y"
     // rcs will be 1.x.x+rc-y
     // extra branches will be 1.x.x+branch-y
-    public static final String VERSION = "1.8.6+oneconfig_alpha-1";
+    //MAKE SURE TO UPDATE THIS IN ROOT.GRADLE AS WELL!!!
+    public static final String VERSION = "1.8.6+oneconfig_alpha-2";
 
     private final Logger logger = LogManager.getLogger("Patcher");
     private final File logsDirectory = new File(Minecraft.getMinecraft().mcDataDir + File.separator + "logs" + File.separator);
@@ -359,6 +360,13 @@ public class Patcher {
                 notifications.send("Patcher", baseMessage + "Optimized Font Renderer is now disabled.");
                 PatcherConfig.optimizedFontRenderer = false;
             }
+        }
+
+        try {
+            Class.forName("net.labymod.addons.resourcepacks24.Resourcepacks24", false, getClass().getClassLoader());
+            notifications.send("Patcher", "The LabyMod addon \"Resourcepacks24\" conflicts with Patcher's resourcepack optimizations. Please remove it to make it work again.");
+        } catch (ClassNotFoundException ignored) {
+
         }
 
         this.forceSaveConfig();

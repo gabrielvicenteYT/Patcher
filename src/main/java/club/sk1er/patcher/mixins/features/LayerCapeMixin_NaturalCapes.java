@@ -3,25 +3,26 @@ package club.sk1er.patcher.mixins.features;
 import club.sk1er.patcher.config.PatcherConfig;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.client.renderer.entity.layers.LayerCape;
 import net.minecraft.util.MathHelper;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+//#if MC==11202
+//$$ import net.minecraft.inventory.EntityEquipmentSlot;
+//#endif
 @Mixin(LayerCape.class)
 public class LayerCapeMixin_NaturalCapes {
-    public AbstractClientPlayer entityLivingBaseIn;
-    private float height;
-    private float swing;
-    private float swingSides;
-
-    @Final
-    @Shadow
-    private RenderPlayer playerRenderer;
+    @Unique
+    private AbstractClientPlayer patcher$entityLivingBaseIn;
+    @Unique
+    private float patcher$height;
+    @Unique
+    private float patcher$swing;
+    @Unique
+    private float patcher$v;
 
     @ModifyConstant(
         method = "doRenderLayer(Lnet/minecraft/client/entity/AbstractClientPlayer;FFFFFFF)V",
@@ -39,7 +40,7 @@ public class LayerCapeMixin_NaturalCapes {
         at = @At(value = "HEAD")
     )
     public void patcher$setEntityLivingBaseIn(AbstractClientPlayer entityLivingBaseIn, float f, float g, float partialTicks, float h, float i, float j, float scale, CallbackInfo ci) {
-        this.entityLivingBaseIn = entityLivingBaseIn;
+        this.patcher$entityLivingBaseIn = entityLivingBaseIn;
     }
 
     @Redirect(
@@ -50,14 +51,21 @@ public class LayerCapeMixin_NaturalCapes {
         if (PatcherConfig.naturalCapes) {
             float y1 = 0.00F;
             float z1 = 0.125F;
-            if (this.entityLivingBaseIn.isSneaking()) {
+            if (this.patcher$entityLivingBaseIn.isSneaking()) {
                 z1 = 0.027F;
                 y1 = 0.05F;
             }
-            if (this.entityLivingBaseIn.inventory.armorItemInSlot(2) != null) {
+            //#if MC==10809
+            if (patcher$entityLivingBaseIn.getCurrentArmor(2) != null || patcher$entityLivingBaseIn.getCurrentArmor(3) != null) {
                 z1 += 0.032;
 
             }
+            //#else
+            //$$if (this.patcher$entityLivingBaseIn.getItemStackFromSlot(EntityEquipmentSlot.CHEST) != null || this.patcher$entityLivingBaseIn.getItemStackFromSlot(EntityEquipmentSlot.LEGS) != null) {
+            //$$z1 += 0.032;
+            //$$}
+            //#endif
+
             GlStateManager.translate(0.0F, y1, z1);
             return;
         }
@@ -70,7 +78,7 @@ public class LayerCapeMixin_NaturalCapes {
         at = @At(value = "STORE")
     )
     public float patcher$setHeight(float ori) {
-        height = ori;
+        patcher$height = ori;
         return ori;
     }
 
@@ -80,7 +88,7 @@ public class LayerCapeMixin_NaturalCapes {
         at = @At(value = "STORE")
     )
     public float patcher$setSwing(float ori) {
-        swing = ori;
+        patcher$swing = ori;
         return ori;
     }
 
@@ -90,32 +98,60 @@ public class LayerCapeMixin_NaturalCapes {
         at = @At(value = "STORE")
     )
     public float patcher$setSwingSides(float ori) {
-        swingSides = ori;
+        patcher$v = (float) ((ori / 2) / Math.sqrt(2 + (Math.pow((ori - 10) / 60, 2))));
         return ori;
     }
 
-    @Inject(
+    @ModifyArg(
         method = "doRenderLayer(Lnet/minecraft/client/entity/AbstractClientPlayer;FFFFFFF)V",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/util/MathHelper;sin(F)F", shift = At.Shift.AFTER, ordinal = 1),
-        cancellable = true
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;rotate(FFFF)V", ordinal = 0),
+        index = 0
     )
-    public void patcher$replaceCapeRotations(AbstractClientPlayer entityLivingBaseIn, float f, float g, float partialTicks, float h, float i, float j, float scale, CallbackInfo ci) {
-        if (PatcherConfig.naturalCapes) {
-            float v = (float) ((swingSides / 2) / Math.sqrt(2 + (Math.pow((swingSides - 10) / 60, 2))));
-            float min = entityLivingBaseIn.isSneaking() ? (entityLivingBaseIn.inventory.armorItemInSlot(2) != null || entityLivingBaseIn.inventory.armorItemInSlot(3) != null) ? 41.0F : 35.0F : 5.0F;
-
-            float angle1 = MathHelper.clamp_float((swing / ((float) Math.sqrt(6 + (Math.pow(swing / 150, 2))))), min, 130.0F) + height;
-            float angle2 = MathHelper.clamp_float(v, -50.0F, 65.0F);
-            float angle3 = MathHelper.clamp_float(-v, -50.0F, 65.0F);
-
-            GlStateManager.rotate(angle1, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotate(angle2, 0.0F, 0.0F, 1.0F);
-            GlStateManager.rotate(angle3, 0.0F, 1.0F, 0.0F);
-            GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
-
-            playerRenderer.getMainModel().renderCape(0.0625F);
-            GlStateManager.popMatrix();
-            ci.cancel();
+    private float patcher$modifyCapeRotation1(float angle) {
+        if (!PatcherConfig.naturalCapes) {
+            return angle;
         }
+        float min;
+        if (patcher$entityLivingBaseIn.isSneaking()) {
+            min = 8.0f;
+            //#if MC==10809
+            if ((patcher$entityLivingBaseIn.getCurrentArmor(2) != null || patcher$entityLivingBaseIn.getCurrentArmor(3) != null)) {
+                min += 3.0F;
+            }
+            //#else
+            //$$if (this.patcher$entityLivingBaseIn.getItemStackFromSlot(EntityEquipmentSlot.CHEST) != null || this.patcher$entityLivingBaseIn.getItemStackFromSlot(EntityEquipmentSlot.LEGS) != null) {
+            //$$min+=10.0F;
+            //$$}
+            //#endif
+
+        } else {
+            min = 5;
+        }
+
+        return MathHelper.clamp_float((patcher$swing / ((float) Math.sqrt(6 + (Math.pow(patcher$swing / 150, 2))))), min, 130.0F) + patcher$height;
+    }
+
+    @ModifyArg(
+        method = "doRenderLayer(Lnet/minecraft/client/entity/AbstractClientPlayer;FFFFFFF)V",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;rotate(FFFF)V", ordinal = 1),
+        index = 0
+    )
+    private float patcher$modifyCapeRotation2(float angle) {
+        if (!PatcherConfig.naturalCapes) {
+            return angle;
+        }
+        return MathHelper.clamp_float(patcher$v, -50.0F, 65.0F);
+    }
+
+    @ModifyArg(
+        method = "doRenderLayer(Lnet/minecraft/client/entity/AbstractClientPlayer;FFFFFFF)V",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/GlStateManager;rotate(FFFF)V", ordinal = 2),
+        index = 0
+    )
+    private float patcher$modifyCapeRotation3(float angle) {
+        if (!PatcherConfig.naturalCapes) {
+            return angle;
+        }
+        return MathHelper.clamp_float(-patcher$v, -50.0F, 65.0F);
     }
 }

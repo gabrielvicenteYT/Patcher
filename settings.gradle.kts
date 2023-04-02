@@ -4,7 +4,7 @@ pluginManagement {
         maven("https://repo.polyfrost.cc/releases")
     }
     plugins {
-        val pgtVersion = "0.1.27"
+        val pgtVersion = "0.1.28"
         id("cc.polyfrost.multi-version.root") version pgtVersion
     }
 }
