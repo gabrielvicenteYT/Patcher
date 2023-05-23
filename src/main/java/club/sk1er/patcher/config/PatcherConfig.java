@@ -232,6 +232,13 @@ public class PatcherConfig extends Config {
     public static float titleOpacity = 1.0F;
 
     @Switch(
+        name = "Remove Water FOV",
+        description = "Remove FOV change when underwater.",
+        category = "Miscellaneous", subcategory = "Field of View"
+    )
+    public static boolean removeWaterFov;
+
+    @Switch(
         name = "FOV Modifier",
         description = "Allow for modifying FOV change states.",
         category = "Miscellaneous", subcategory = "Field of View"
@@ -1415,6 +1422,15 @@ public class PatcherConfig extends Config {
     )
     public static boolean hudCaching;
 
+    @Slider(
+        name = "Cache FPS",
+        description = "The amount of frames to cache for the HUD.",
+        category = "Experimental", subcategory = "HUD Caching",
+        step = 5,
+        min = 5, max = 60
+    )
+    public static int cacheFPS = 20;
+
     // HIDDEN
 
     public static boolean labyModMoment = true;
@@ -1423,7 +1439,7 @@ public class PatcherConfig extends Config {
     public static PatcherConfig INSTANCE = new PatcherConfig(); // Needs to be at the bottom or the default values take priority
 
     public PatcherConfig() {
-        super(new Mod("Patcher", ModType.UTIL_QOL, new VigilanceMigrator("./config/patcher.toml")), "patcher.json");
+        super(new Mod("Patcher", ModType.UTIL_QOL, "/patcher.png", new VigilanceMigrator("./config/patcher.toml")), "patcher.json");
         initialize();
 
         Runnable reloadWorld = () -> Minecraft.getMinecraft().renderGlobal.loadRenderers();

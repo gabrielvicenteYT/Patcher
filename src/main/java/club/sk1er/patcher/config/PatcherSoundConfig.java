@@ -27,7 +27,7 @@ public class PatcherSoundConfig extends Config {
         //#else
         //$$ "patcher_sounds-112.json";
         //#endif
-    public transient static final Mod soundModImpl = new Mod("Patcher Sounds", ModType.UTIL_QOL, new VigilanceMigrator(CONFIG_NAME));
+    public transient static final Mod soundModImpl = new Mod("Patcher Sounds", ModType.UTIL_QOL, "/patcher.png", new VigilanceMigrator(CONFIG_NAME));
     public transient final Map<ResourceLocation, BasicOption> data;
 
     public PatcherSoundConfig(Map<ResourceLocation, BasicOption> data, Map<ResourceLocation, SoundEventAccessorComposite> soundRegistry) {

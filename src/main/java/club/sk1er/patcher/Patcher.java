@@ -77,7 +77,7 @@ public class Patcher {
     // rcs will be 1.x.x+rc-y
     // extra branches will be 1.x.x+branch-y
     //MAKE SURE TO UPDATE THIS IN ROOT.GRADLE AS WELL!!!
-    public static final String VERSION = "1.8.6+oneconfig_alpha-2";
+    public static final String VERSION = "1.8.7+oneconfig_alpha-3";
 
     private final Logger logger = LogManager.getLogger("Patcher");
     private final File logsDirectory = new File(Minecraft.getMinecraft().mcDataDir + File.separator + "logs" + File.separator);

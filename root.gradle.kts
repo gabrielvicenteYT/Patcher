@@ -8,7 +8,7 @@ plugins {
 // rcs will be 1.x.x+rc-y
 // extra branches will be 1.x.x+branch-y
 // MAKE SURE TO UPDATE THIS IN PATCHER CLASS TOO!!!
-version = "1.8.6+oneconfig_alpha-2"
+version = "1.8.7+oneconfig_alpha-3"
 
 preprocess {
     "1.12.2-forge"(11202, "srg") {
